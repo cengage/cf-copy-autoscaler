@@ -17,7 +17,7 @@ type Rules struct {
 }
 
 func (r *Rules) clean() error {
-	for index, _ := range r.Relationships.Rules {
+	for index := range r.Relationships.Rules {
 		r.Relationships.Rules[index].GUID = ""
 	}
 
