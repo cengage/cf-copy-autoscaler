@@ -1,8 +1,8 @@
 package main
 
 import (
+	copyautoscale_plugin "./plugin"
 	"code.cloudfoundry.org/cli/plugin"
-	copyautoscale_plugin "copy-autoscale/plugin"
 )
 
 /*
