@@ -1,16 +1,16 @@
 package plugin
 
 import (
-	"fmt"
-	"os"
-	"errors"
 	"code.cloudfoundry.org/cli/plugin"
 	"code.cloudfoundry.org/cli/plugin/models"
-	"net/http"
 	"crypto/tls"
-	"net/url"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
+	"os"
 )
 
 func NewPlugin() *Plugin {
@@ -19,8 +19,6 @@ func NewPlugin() *Plugin {
 
 type Plugin struct{}
 
-
-
 func fatalIf(err error) {
 	if err != nil {
 		fmt.Fprintln(os.Stdout, "error:", err)
@@ -28,12 +26,12 @@ func fatalIf(err error) {
 	}
 }
 
-type SaveFile struct{
-	Rules    Rules       `json:"rules"`
-	Schedule Schedule    `json:"schedule"`
+type SaveFile struct {
+	Rules    Rules    `json:"rules"`
+	Schedule Schedule `json:"schedule"`
 }
 
-func (s *SaveFile) printJSON() (error) {
+func (s *SaveFile) printJSON() error {
 	jsonString, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err
@@ -42,8 +40,6 @@ func (s *SaveFile) printJSON() (error) {
 
 	return nil
 }
-
-
 
 func (s *SaveFile) load(filename string) error {
 	data, err := ioutil.ReadFile(filename)
@@ -105,7 +101,7 @@ type cliConnection interface {
 
 func findAutoscaler(services []plugin_models.GetServices_Model, err error) (string, error) {
 
-	if(err != nil){
+	if err != nil {
 		return "", err
 	}
 
@@ -134,7 +130,7 @@ func getBindingURL(fullDashboardURL, bindingGUID string) (string, error) {
 	return fmt.Sprintf("%s/api/bindings/%s", baseURL, bindingGUID), nil
 }
 
-func getScheduleURL(bindingURL string) (string) {
+func getScheduleURL(bindingURL string) string {
 	return fmt.Sprintf("%s/scheduled_limit_changes", bindingURL)
 }
 
@@ -156,21 +152,20 @@ func getCCQueryURL(apiEndpoint, appGUID, serviceInstanceGUID string) (string, er
 }
 
 var (
-	ErrNoArgs     = errors.New("app name must be specified")
-	ErrNoPaths    = errors.New("a config file is required to be loaded or saved")
-	ErrBothPaths  = errors.New("a config file cannot be both loaded and saved")
-	ErrNoAppScaler  = errors.New("an autoscaler service cannot be found")
+	ErrNoArgs      = errors.New("app name must be specified")
+	ErrNoPaths     = errors.New("a config file is required to be loaded or saved")
+	ErrBothPaths   = errors.New("a config file cannot be both loaded and saved")
+	ErrNoAppScaler = errors.New("an autoscaler service cannot be found")
 )
 
 func (p *Plugin) FetchCLIDependencies(cliConnection plugin.CliConnection, args []string) (CLIDependencies, error) {
-
 
 	if len(args) != 3 {
 		return CLIDependencies{}, fmt.Errorf("invalid parameters")
 	}
 
-	appName  := args[0]
-	method   := args[1]
+	appName := args[0]
+	method := args[1]
 	fileName := args[2]
 
 	if method != "import" && method != "export" {
@@ -178,7 +173,6 @@ func (p *Plugin) FetchCLIDependencies(cliConnection plugin.CliConnection, args [
 	}
 
 	fmt.Printf("%sing %s for %s\n\n", method, fileName, appName)
-
 
 	isLoggedIn, err := cliConnection.IsLoggedIn()
 	if err != nil {
@@ -296,7 +290,7 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 		}
 
 		sf := SaveFile{
-			Rules: rules,
+			Rules:    rules,
 			Schedule: schedule,
 		}
 
@@ -344,7 +338,6 @@ func (p *Plugin) Run(cliConnection plugin.CliConnection, args []string) {
 	if args[0] != "copy-autoscale" {
 		return
 	}
-
 
 	dependencies, err := p.FetchCLIDependencies(cliConnection, args[1:])
 	fatalIf(err)
