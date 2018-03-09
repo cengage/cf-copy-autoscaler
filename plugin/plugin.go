@@ -90,15 +90,6 @@ type CLIDependencies struct {
 	Method      string
 }
 
-type cliConnection interface {
-	IsLoggedIn() (bool, error)
-	AccessToken() (string, error)
-	ApiEndpoint() (string, error)
-	GetService(name string) (plugin_models.GetService_Model, error)
-	GetApp(name string) (plugin_models.GetAppModel, error)
-	IsSSLDisabled() (bool, error)
-}
-
 func findAutoscaler(services []plugin_models.GetServices_Model, err error) (string, error) {
 
 	if err != nil {
@@ -152,9 +143,6 @@ func getCCQueryURL(apiEndpoint, appGUID, serviceInstanceGUID string) (string, er
 }
 
 var (
-	ErrNoArgs      = errors.New("app name must be specified")
-	ErrNoPaths     = errors.New("a config file is required to be loaded or saved")
-	ErrBothPaths   = errors.New("a config file cannot be both loaded and saved")
 	ErrNoAppScaler = errors.New("an autoscaler service cannot be found")
 )
 
