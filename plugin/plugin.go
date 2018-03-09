@@ -371,7 +371,8 @@ func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "$ cf copy-autoscaler helloworld > autoscaler-settings.json\n$ cf copy-autoscaler helloworld autoscaler-settings.json",
+					Usage: "$ cf copy-autoscale helloworld export autoscaler-settings.json\n" +
+						"$ cf copy-autoscale helloworld import autoscaler-settings.json",
 				},
 			},
 		},
