@@ -1,16 +1,16 @@
 package plugin
 
 import (
-	"fmt"
-	"os"
-	"errors"
 	"code.cloudfoundry.org/cli/plugin"
 	"code.cloudfoundry.org/cli/plugin/models"
-	"net/http"
 	"crypto/tls"
-	"net/url"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/url"
+	"os"
 )
 
 func NewPlugin() *Plugin {
@@ -19,8 +19,6 @@ func NewPlugin() *Plugin {
 
 type Plugin struct{}
 
-
-
 func fatalIf(err error) {
 	if err != nil {
 		fmt.Fprintln(os.Stdout, "error:", err)
@@ -28,12 +26,12 @@ func fatalIf(err error) {
 	}
 }
 
-type SaveFile struct{
-	Rules    Rules       `json:"rules"`
-	Schedule Schedule    `json:"schedule"`
+type SaveFile struct {
+	Rules    Rules    `json:"rules"`
+	Schedule Schedule `json:"schedule"`
 }
 
-func (s *SaveFile) printJSON() (error) {
+func (s *SaveFile) printJSON() error {
 	jsonString, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err
@@ -42,8 +40,6 @@ func (s *SaveFile) printJSON() (error) {
 
 	return nil
 }
-
-
 
 func (s *SaveFile) load(filename string) error {
 	data, err := ioutil.ReadFile(filename)
@@ -72,7 +68,7 @@ func (s *SaveFile) save(filename string) error {
 	return nil
 }
 
-type CopyAutoscale struct{}
+type CopyAutoscaler struct{}
 
 type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
@@ -94,18 +90,9 @@ type CLIDependencies struct {
 	Method      string
 }
 
-type cliConnection interface {
-	IsLoggedIn() (bool, error)
-	AccessToken() (string, error)
-	ApiEndpoint() (string, error)
-	GetService(name string) (plugin_models.GetService_Model, error)
-	GetApp(name string) (plugin_models.GetAppModel, error)
-	IsSSLDisabled() (bool, error)
-}
-
 func findAutoscaler(services []plugin_models.GetServices_Model, err error) (string, error) {
 
-	if(err != nil){
+	if err != nil {
 		return "", err
 	}
 
@@ -134,7 +121,7 @@ func getBindingURL(fullDashboardURL, bindingGUID string) (string, error) {
 	return fmt.Sprintf("%s/api/bindings/%s", baseURL, bindingGUID), nil
 }
 
-func getScheduleURL(bindingURL string) (string) {
+func getScheduleURL(bindingURL string) string {
 	return fmt.Sprintf("%s/scheduled_limit_changes", bindingURL)
 }
 
@@ -156,29 +143,24 @@ func getCCQueryURL(apiEndpoint, appGUID, serviceInstanceGUID string) (string, er
 }
 
 var (
-	ErrNoArgs     = errors.New("app name must be specified")
-	ErrNoPaths    = errors.New("a config file is required to be loaded or saved")
-	ErrBothPaths  = errors.New("a config file cannot be both loaded and saved")
-	ErrNoAppScaler  = errors.New("an autoscaler service cannot be found")
+	ErrNoAppScaler = errors.New("an autoscaler service cannot be found")
 )
 
 func (p *Plugin) FetchCLIDependencies(cliConnection plugin.CliConnection, args []string) (CLIDependencies, error) {
-
 
 	if len(args) != 3 {
 		return CLIDependencies{}, fmt.Errorf("invalid parameters")
 	}
 
-	appName  := args[0]
-	method   := args[1]
+	appName := args[0]
+	method := args[1]
 	fileName := args[2]
 
-	if method != "import" && method != "export" {
-		return CLIDependencies{}, fmt.Errorf("method must be 'import' or 'export', not: %s", method)
+	if method != "--import" && method != "--export" {
+		return CLIDependencies{}, fmt.Errorf("method must be '--import' or '--export', not: %s", method)
 	}
 
-	fmt.Printf("%sing %s for %s\n\n", method, fileName, appName)
-
+	fmt.Printf("%sing %s for %s\n\n", method[2:], fileName, appName)
 
 	isLoggedIn, err := cliConnection.IsLoggedIn()
 	if err != nil {
@@ -278,7 +260,7 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 
 	scheduleURL := getScheduleURL(fullURL)
 
-	if dependencies.Method == "export" {
+	if dependencies.Method == "--export" {
 		// Get Rules from autoscaling
 		rules := Rules{}
 		err = dependencies.JSONClient.Do("GET", fullURL, nil, &rules)
@@ -296,14 +278,14 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 		}
 
 		sf := SaveFile{
-			Rules: rules,
+			Rules:    rules,
 			Schedule: schedule,
 		}
 
 		sf.save(dependencies.FileName)
 	}
 
-	if dependencies.Method == "import" {
+	if dependencies.Method == "--import" {
 		sf := SaveFile{}
 		sf.load(dependencies.FileName)
 
@@ -341,10 +323,9 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 
 func (p *Plugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// only handle if actually invoked, else it can't be uninstalled cleanly
-	if args[0] != "copy-autoscale" {
+	if args[0] != "copy-autoscaler" {
 		return
 	}
-
 
 	dependencies, err := p.FetchCLIDependencies(cliConnection, args[1:])
 	fatalIf(err)
@@ -371,7 +352,7 @@ func (p *Plugin) Run(cliConnection plugin.CliConnection, args []string) {
 // to the user in the core commands `cf help`, `cf`, or `cf -h`.
 func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
-		Name: "copy-autoscale",
+		Name: "copy-autoscaler",
 		Version: plugin.VersionType{
 			Major: 0,
 			Minor: 0,
@@ -384,13 +365,14 @@ func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 		},
 		Commands: []plugin.Command{
 			{
-				Name:     "copy-autoscale",
-				HelpText: "Plugin to copy the autoscale settings",
+				Name:     "copy-autoscaler",
+				HelpText: "Plugin to copy the autoscaler settings",
 
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "$ cf copy-autoscaler helloworld > autoscaler-settings.json\n$ cf copy-autoscaler helloworld autoscaler-settings.json",
+					Usage: "$ cf copy-autoscaler helloworld --export autoscaler-settings.json\n" +
+						"   $ cf copy-autoscaler helloworld --import autoscaler-settings.json",
 				},
 			},
 		},
