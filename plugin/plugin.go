@@ -68,7 +68,7 @@ func (s *SaveFile) save(filename string) error {
 	return nil
 }
 
-type CopyAutoscale struct{}
+type CopyAutoscaler struct{}
 
 type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
@@ -156,11 +156,11 @@ func (p *Plugin) FetchCLIDependencies(cliConnection plugin.CliConnection, args [
 	method := args[1]
 	fileName := args[2]
 
-	if method != "import" && method != "export" {
-		return CLIDependencies{}, fmt.Errorf("method must be 'import' or 'export', not: %s", method)
+	if method != "--import" && method != "--export" {
+		return CLIDependencies{}, fmt.Errorf("method must be '--import' or '--export', not: %s", method)
 	}
 
-	fmt.Printf("%sing %s for %s\n\n", method, fileName, appName)
+	fmt.Printf("%sing %s for %s\n\n", method[2:], fileName, appName)
 
 	isLoggedIn, err := cliConnection.IsLoggedIn()
 	if err != nil {
@@ -260,7 +260,7 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 
 	scheduleURL := getScheduleURL(fullURL)
 
-	if dependencies.Method == "export" {
+	if dependencies.Method == "--export" {
 		// Get Rules from autoscaling
 		rules := Rules{}
 		err = dependencies.JSONClient.Do("GET", fullURL, nil, &rules)
@@ -285,7 +285,7 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 		sf.save(dependencies.FileName)
 	}
 
-	if dependencies.Method == "import" {
+	if dependencies.Method == "--import" {
 		sf := SaveFile{}
 		sf.load(dependencies.FileName)
 
@@ -323,7 +323,7 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 
 func (p *Plugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// only handle if actually invoked, else it can't be uninstalled cleanly
-	if args[0] != "copy-autoscale" {
+	if args[0] != "copy-autoscaler" {
 		return
 	}
 
@@ -352,7 +352,7 @@ func (p *Plugin) Run(cliConnection plugin.CliConnection, args []string) {
 // to the user in the core commands `cf help`, `cf`, or `cf -h`.
 func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
-		Name: "copy-autoscale",
+		Name: "copy-autoscaler",
 		Version: plugin.VersionType{
 			Major: 0,
 			Minor: 0,
@@ -365,14 +365,14 @@ func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 		},
 		Commands: []plugin.Command{
 			{
-				Name:     "copy-autoscale",
-				HelpText: "Plugin to copy the autoscale settings",
+				Name:     "copy-autoscaler",
+				HelpText: "Plugin to copy the autoscaler settings",
 
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "$ cf copy-autoscale helloworld export autoscaler-settings.json\n" +
-						"$ cf copy-autoscale helloworld import autoscaler-settings.json",
+					Usage: "$ cf copy-autoscaler helloworld --export autoscaler-settings.json\n" +
+						"   $ cf copy-autoscaler helloworld --import autoscaler-settings.json",
 				},
 			},
 		},

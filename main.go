@@ -1,7 +1,7 @@
 package main
 
 import (
-	copyautoscale_plugin "./plugin"
+	copyautoscaler_plugin "./plugin"
 	"code.cloudfoundry.org/cli/plugin"
 )
 
@@ -35,7 +35,7 @@ func main() {
 	// Note: The plugin's main() method is invoked at install time to collect
 	// metadata. The plugin will exit 0 and the Run([]string) method will not be
 	// invoked.
-	plugin.Start(copyautoscale_plugin.NewPlugin())
+	plugin.Start(copyautoscaler_plugin.NewPlugin())
 	// Plugin code should be written in the Run([]string) method,
 	// ensuring the plugin environment is bootstrapped.
 }

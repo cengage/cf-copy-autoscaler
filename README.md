@@ -11,7 +11,7 @@ cf install-plugin http://stash.corp.web:7990/scm/pcf/copy-autoscaler.git
 ### Usage
 
 ```bash
-$ cf copy-autoscale helloworld export autoscaler-settings.json
+$ cf copy-autoscaler helloworld export autoscaler-settings.json
 exporting autoscaler-settings.json for helloworld
 
 done.
@@ -71,7 +71,7 @@ $ cat autoscaler-settings.json
   }
 }%
 
-$ cf copy-autoscale helloworld import autoscaler-settings.json
+$ cf copy-autoscaler helloworld import autoscaler-settings.json
 importing autoscaler-settings.json for helloworld
 
 done.
