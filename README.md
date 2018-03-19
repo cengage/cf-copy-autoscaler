@@ -5,7 +5,7 @@ Inspired by https://github.com/Pivotal-Field-Engineering/autoscaling-cli-plugin
 
 ### Installation
 ```bash
-cf install-plugin http://stash.corp.web:7990/scm/pcf/copy-autoscaler.git
+cf install-plugin -f https://github.com/cengage/cf-copy-autoscaler/releases/download/0.0.1/copy-autoscaler-darwin64
 ```
 
 ### Usage
