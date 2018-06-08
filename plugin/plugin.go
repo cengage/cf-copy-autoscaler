@@ -289,6 +289,16 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 		sf := SaveFile{}
 		sf.load(dependencies.FileName)
 
+		current := Rules{}
+		err = dependencies.JSONClient.Do("GET", fullURL, nil, &current)
+		if err != nil {
+			return fmt.Errorf("autoscaling API: %s", err)
+		}
+
+		for index, rule := range sf.Rules.Relationships.Rules {
+			sf.Rules.Relationships.Rules[index].GUID = current.FindGuid(rule.Type)
+		}
+
 		err = dependencies.JSONClient.Do("PUT", fullURL, sf.Rules, nil)
 		if err != nil {
 			return fmt.Errorf("couldn't save rules: %s", err)
@@ -321,6 +331,17 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 // user facing errors). The CLI will exit 0 if the plugin exits 0 and will exit
 // 1 should the plugin exits nonzero.
 
+func (r *Rules) FindGuid(ruleType string) string {
+	guid := ""
+	for _, rule := range r.Relationships.Rules {
+		if rule.Type == ruleType {
+			guid = rule.GUID
+		}
+	}
+
+	return guid
+}
+
 func (p *Plugin) Run(cliConnection plugin.CliConnection, args []string) {
 	// only handle if actually invoked, else it can't be uninstalled cleanly
 	if args[0] != "copy-autoscaler" {
@@ -329,9 +350,6 @@ func (p *Plugin) Run(cliConnection plugin.CliConnection, args []string) {
 
 	dependencies, err := p.FetchCLIDependencies(cliConnection, args[1:])
 	fatalIf(err)
-
-	//jsonData, err := json.MarshalIndent(dependencies.Service, "", "    ")
-	//fmt.Println(jsonData)
 
 	if err := p.RunWithError(dependencies); err != nil {
 		fmt.Printf("%s", err)
@@ -355,7 +373,7 @@ func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 		Name: "copy-autoscaler",
 		Version: plugin.VersionType{
 			Major: 0,
-			Minor: 0,
+			Minor: 1,
 			Build: 1,
 		},
 		MinCliVersion: plugin.VersionType{
