@@ -194,7 +194,7 @@ func (p *Plugin) FetchCLIDependencies(cliConnection plugin.CliConnection, args [
 
 	serviceName, err := findAutoscaler(cliConnection.GetServices())
 	if err != nil {
-		return CLIDependencies{}, fmt.Errorf("couldn't get app %s: %s", appName, err)
+		return CLIDependencies{}, fmt.Errorf("%s", err)
 	}
 
 	service, err := cliConnection.GetService(serviceName)
@@ -385,7 +385,7 @@ func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 		Version: plugin.VersionType{
 			Major: 0,
 			Minor: 2,
-			Build: 0,
+			Build: 1,
 		},
 		MinCliVersion: plugin.VersionType{
 			Major: 6,
@@ -400,7 +400,8 @@ func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 				// UsageDetails is optional
 				// It is used to show help of usage of each command
 				UsageDetails: plugin.Usage{
-					Usage: "$ cf copy-autoscaler helloworld --export autoscaler-settings.json\n" +
+					Usage: "$ cf copy-autoscaler helloworld --find\n" +
+						"   $ cf copy-autoscaler helloworld --export autoscaler-settings.json\n" +
 						"   $ cf copy-autoscaler helloworld --import autoscaler-settings.json",
 				},
 			},
