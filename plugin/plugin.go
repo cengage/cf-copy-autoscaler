@@ -384,8 +384,8 @@ func (p *Plugin) GetMetadata() plugin.PluginMetadata {
 		Name: "copy-autoscaler",
 		Version: plugin.VersionType{
 			Major: 0,
-			Minor: 1,
-			Build: 1,
+			Minor: 2,
+			Build: 0,
 		},
 		MinCliVersion: plugin.VersionType{
 			Major: 6,
