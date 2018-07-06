@@ -11,6 +11,9 @@ cf install-plugin -f https://github.com/cengage/cf-copy-autoscaler/releases/down
 ### Usage
 
 ```bash
+$ cf copy-autoscaler helloworld --find
+autoscaler
+
 $ cf copy-autoscaler helloworld --export autoscaler-settings.json
 done.
 
