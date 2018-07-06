@@ -5,15 +5,13 @@ Inspired by https://github.com/Pivotal-Field-Engineering/autoscaling-cli-plugin
 
 ### Installation
 ```bash
-cf install-plugin -f https://github.com/cengage/cf-copy-autoscaler/releases/download/0.1.1/copy-autoscaler-darwin64
+cf install-plugin -f https://github.com/cengage/cf-copy-autoscaler/releases/download/0.2.2/copy-autoscaler-darwin
 ```
 
 ### Usage
 
 ```bash
 $ cf copy-autoscaler helloworld --export autoscaler-settings.json
-exporting autoscaler-settings.json for helloworld
-
 done.
 
 $ cat autoscaler-settings.json
@@ -72,7 +70,5 @@ $ cat autoscaler-settings.json
 }%
 
 $ cf copy-autoscaler helloworld --import autoscaler-settings.json
-importing autoscaler-settings.json for helloworld
-
 done.
 ```
