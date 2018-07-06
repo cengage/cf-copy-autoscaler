@@ -148,19 +148,26 @@ var (
 
 func (p *Plugin) FetchCLIDependencies(cliConnection plugin.CliConnection, args []string) (CLIDependencies, error) {
 
-	if len(args) != 3 {
+	appName := ""
+	method := ""
+	fileName := ""
+
+	if(len(args) == 2 && args[1] == "--find") {
+		appName = args[0]
+		method = args[1]
+	} else if (len(args) == 2 && (args[1] == "--export" || args[1] == "--import")) {
+		appName = args[0]
+		method = args[1]
+		fileName = args[2]
+	} else {
 		return CLIDependencies{}, fmt.Errorf("invalid parameters")
 	}
 
-	appName := args[0]
-	method := args[1]
-	fileName := args[2]
-
-	if method != "--import" && method != "--export" {
+	if method != "--import" && method != "--export" && method != "--find" {
 		return CLIDependencies{}, fmt.Errorf("method must be '--import' or '--export', not: %s", method)
 	}
 
-	fmt.Printf("%sing %s for %s\n\n", method[2:], fileName, appName)
+	//fmt.Printf("%sing %s for %s\n\n", method[2:], fileName, appName)
 
 	isLoggedIn, err := cliConnection.IsLoggedIn()
 	if err != nil {
@@ -249,7 +256,7 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 	}
 
 	if len(ccResponse.Resources) != 1 {
-		return fmt.Errorf("couldn't find service binding for %s to %s", dependencies.AppName, dependencies.ServiceName)
+		return fmt.Errorf("error: couldn't find service binding to %s", dependencies.ServiceName)
 	}
 
 	// get from autoscaling
@@ -259,6 +266,10 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 	}
 
 	scheduleURL := getScheduleURL(fullURL)
+
+	if dependencies.Method == "--find" {
+		fmt.Println(dependencies.ServiceName)
+	}
 
 	if dependencies.Method == "--export" {
 		// Get Rules from autoscaling
@@ -283,6 +294,7 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 		}
 
 		sf.save(dependencies.FileName)
+		fmt.Println("done.")
 	}
 
 	if dependencies.Method == "--import" {
@@ -311,11 +323,10 @@ func (p *Plugin) RunWithError(dependencies CLIDependencies) error {
 			}
 		}
 
+		fmt.Println("done.")
+
 	}
-
-	fmt.Println("done.")
 	return nil
-
 }
 
 // Run must be implemented by any plugin because it is part of the
